@@ -35,4 +35,12 @@ class Student extends Model
         'stateId',
         'image'
     ];
+    public function country()
+    {
+        return $this->belongsTo(Country::class, 'countryId', 'id');
+    }
+    public function state()
+    {
+        return $this->belongsTo(State::class, 'stateId', 'id');
+    }
 }

@@ -6,6 +6,7 @@ use App\Models\Country;
 use App\Models\State;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 
 class StudentController extends Controller
@@ -18,19 +19,36 @@ class StudentController extends Controller
     }
     public function store(Request $request)
     {
-        // dd($request->toArray());
+        
         try {
             $error = $this->studentValidation($request, 0);
+        
             if (!empty($error['statusCode']) == 400) return response()->json($error, 400);
+            $response = $request->all();
 
-            $response = Student::create([
-                'name' => $request->name,
-                'countryId' => $request->countryId,
-                'stateId' => $request->stateId,
-                'image' => $request->image
-            ]);
-            dd($response->toArray());
-            return view('welcome');
+            $arrayMap = [];
+            $index = 0;
+            foreach ($response['name'] as $key => $value) {
+                $collection = collect($response);
+                $array = $collection->map(function ($value) use ($key) {
+                    return $value[$key];
+                });
+                $arrayMap[$index] = $array->toArray();
+                $index++;
+            }
+
+            foreach ($arrayMap as $data) {
+
+                $result = Student::create([
+                    'name' => $data['name'],
+                    'countryId' => $data['countryId'],
+                    'stateId' => $data['stateId'],
+                    'image' => $this->upload($data['image'])
+                ]);
+            }
+
+            return redirect('/list');
+
             throw new \Exception('student creation failed.');
         } catch (\Exception $e) {
             $error = [];
@@ -55,10 +73,10 @@ class StudentController extends Controller
         $validator = Validator::make(
             $data,
             [
-                'name' => 'required|string',
-                'countryId' => 'required|integer',
-                'stateId' => 'required|integer',
-                'image' => 'required|string',
+                'name' => 'required|array',
+                'countryId' => 'required|array',
+                'stateId' => 'required|array',
+                'image' => 'required|array',
             ]
         );
         if ($validator->fails()) {
@@ -76,7 +94,6 @@ class StudentController extends Controller
     public function place($id)
     {
         try {
-
             $country = Country::with('state')->where('id', $id)->first();
 
             if (empty($country)) {
@@ -103,8 +120,8 @@ class StudentController extends Controller
     public function list()
     {
         try {
-            $response = Country::with('state')->orderBy('id', 'desc')->get();
-
+            $response = Student::with(['country', 'state'])->orderBy('id', 'desc')->get();
+            // dd($response->toArray());
             if (empty($response->toArray())) {
                 throw new \Exception('No results found.');
             }
@@ -119,5 +136,13 @@ class StudentController extends Controller
         }
 
         return view('list')->with(array('response' => $response));
+    }
+    public function upload($request)
+    {
+        $file = $request;
+        $fileName = $file->getClientOriginalName();
+        $folder = Str::random(10);
+        $data = $file->storeAs("files/{$folder}", $fileName, "fileUploadToPublic");
+        return $data;
     }
 }

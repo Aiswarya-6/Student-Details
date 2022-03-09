@@ -11,22 +11,33 @@
 
 <body>
     <div class="container">
+        <div>
+            <a class="btn btn-primary" href="{{ url('/') }}">Back to form</a>
+        </div>
         <table class="table table-bordered" id="dynamicAddRemove">
             <tr>
-
+                <th>ID</th>
                 <th>NAME</th>
                 <th>COUNTRY</th>
                 <th>STATE</th>
                 <th>IMAGE</th>
             </tr>
+            @foreach($response as $data)
+            @if($data->country == null)
+            @continue
+            @endif
+            @if($data->state == null)
+            @continue
+            @endif
             <tr>
-@foreach($response as $sata)
-                <td>$data->name</td>
-                <td>$data->country->countryName</td>
-                <td>$data->state->stateName</td>
-                <td>$data->image</td>
-@endforeach
+                <td>{{$data->id}}</td>
+                <td>{{$data->name}}</td>
+                <td>{{$data->country->countryName}}</td>
+                <td>{{$data->state->stateName}}</td>
+                <td><img src="{{$data->image}}" alt="" style="width:80px;"></td>
+
             </tr>
+            @endforeach
         </table>
     </div>
 </body>

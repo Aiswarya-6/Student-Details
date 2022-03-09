@@ -31,4 +31,5 @@ Route::group([
     Route::post('store-input-fields', 'StudentController@store');
     Route::get('place/{countryId}', 'StudentController@place');
     Route::get('list', 'StudentController@list');
+    Route::get('Upload', 'StudentController@upload');
 });
